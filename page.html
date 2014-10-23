@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Some Page</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="jquery-1.11.1.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/kendo.all.min.js"></script>
+    <script src="myrepeater.js"></script>
+    <script src="jquery.dataTables.min.js"></script>
+    <script src="console.js"></script>
+    <link href="styles/kendo.common.min.css" rel="stylesheet" type="text/css">
+    <link href="styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+    <link href="styles/kendo.dataviz.min.css" rel="stylesheet" />
+    <link href="styles/kendo.dataviz.default.min.css" rel="stylesheet" />
+    <link href="jquery.dataTables.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<button class="k-button" onclick="$('.addInTable').show()">Add in table</button>
+<div class="addInTable" data-bind="invisible:isInvisible">
+<fieldset>
+    <legend>Добавить в таблицу<a id="closeAdding" class="k-button k-button-icontext k-delete-button" onclick="$('.addInTable').hide()"><span class="k-icon k-delete"></span></a></legend>
+<label for="newItem">Enter a new item</label>
+<input id="newItem" data-bind="value:newItem" class="k-textbox"><br>
+<label for="descItem">Enter a desc item</label>
+<input id="descItem" data-bind="value:descItem" class="k-textbox"><br>
+<label for="greatItem">Enter a great Item</label>
+<input id="greatItem" data-bind="value:greatItem" class="k-textbox"><br>
+<button class="k-button" data-bind="click:add">Add item</button>
+</fieldset>
+</div>
+<script>
+    var adding = kendo.observable({
+        isInvisible: true,
+        show: function(){
+            this.set("isInvisible",false);
+        },
+        hide: function(){
+            this.set("isInvisible",true);
+        },
+        add: function(e){
+            /*if (this.get("newItem")){
+             this.get("items").push(this.get("newItem"));
+             }*/
+            viewModel.itemq.push({"newItem":this.get("newItem"),"descItem":this.get("descItem"),"greatItem":this.get("greatItem")});
+            viewModel.refreshTable();
+        }
+    });
+    kendo.bind($(".addInTable"),adding);
+</script>
+<!--<div data-role="Repeater" data-bind="source:itemq" data-template="template">
+    <script type="text/x-kendo-template" id="template">
+        <div>
+            <table id="table_id" class="display">
+                <thead>
+                <th>newItem</th>
+                <th>descItem</th>
+                <th>greatItem</th>
+                </thead>
+                <tbody >
+                <tr>
+                    <td>#:newItem#</td>
+                    <td>#:descItem#</td>
+                    <td>#:greatItem#</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </script>
+</div>
+что за говно тут было-->
+<table id="table_id" data-role="Repeater" data-bind="source:itemq" data-template="template" class="display" id="table_id">
+    <thead>
+    <tr>
+    <th>newItem</th>
+    <th>descItem</th>
+    <th>greatItem</th>
+    </tr>
+    </thead>
+    <script type="text/x-kendo-template" id="template">
+    <tbody >
+    <tr>
+        <td>#:newItem#</td>
+        <td>#:descItem#</td>
+        <td>#:greatItem#</td>
+    </tr>
+    </tbody>
+    </script>
+</table>
+<h4>Console</h4>
+<div class="console"></div>
+<script>
+    var dataSource = new kendo.data.DataSource({
+        transport:{
+            read:{
+                url:"package.json",
+                dataType:"json"
+            }
+        }
+    });
+    dataSource.fetch(function(){
+        var data = this.data();
+        kendoConsole.log(data[1].newItem);
+    });
+    dataSource.read();
+    var viewModel = kendo.observable({
+        itemsSource:new kendo.data.DataSource({
+           transport:{
+               read:{
+                   url:"package.json",
+                   dataType:"json"
+               },
+               update:{
+                   url:"package.json",
+                   dataType: "json"
+               }
+           },
+                    parameterMap: function(options, operation) {
+                        if (operation !== "read" && options.models) {
+                            return {
+                                models: kendo.stringify(options.models)
+                            };
+                        }
+                        return options;
+                    },
+            batch: true,
+            schema: {
+                model:
+                {
+                    fields:
+                    {
+                        'newItem':{type:"text"},
+                        'descItem':{type:"text"},
+                        'greatItem':{type:"text"}
+                    }
+                }
+            }
+        }),
+        itemq:[{"newItem":"hello","descItem":"descccc","greatItem":"GREAT"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"},{"newItem":"hello2","descItem":"descccc2","greatItem":"GREAT2"}],
+        newItem: null,
+        descItem: null,
+        greatItem: null,
+        refreshTable: function(e){
+            table.destroy();
+            table = $('#table_id').DataTable({
+                data:viewModel.itemq,
+                columns:[
+                    {data:'newItem'},
+                    {data:'descItem'},
+                    {data:'greatItem'}
+                ]
+            });
+        }
+    });
+
+    $(document).ready(function(){
+        table = $('#table_id').DataTable({
+            data:viewModel.itemq,
+            columns:[
+                {data:'newItem'},
+                {data:'descItem'},
+                {data:'greatItem'}
+            ]
+        });
+        kendoConsole.log(viewModel.itemq.length);
+    });
+    kendo.bind($('#table_id'),viewModel);
+</script>
+</body>
+</html>
